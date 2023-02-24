@@ -1,0 +1,15 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"addin",
+	"author":	"Piotr Krol",
+	"description":	{
+		"":	""
+	},
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true,
+	"id":	"cf2be110-5e97-4503-ad33-9c438dc937fd",
+	"version":	"1.0",
+	"runOnStartup":	false,
+	"sourcewindows":	"GetContoursFromImageUsingOpenCV_C++.vcxproj",
+	"sourcemac":	"GetContoursFromImageUsingOpenCV_C++.xcodeproj"
+}
