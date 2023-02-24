@@ -14,12 +14,24 @@
 using namespace adsk::core;
 using namespace adsk::fusion;
 using namespace adsk::cam;
+using namespace std;
 
 
 Ptr<Application> _app;
 Ptr<UserInterface> _ui;
 Ptr<Product> _product;
 Ptr<Design> _design;
+
+//TODO variable for description and name
+string _cmdid = "getContoursFromImageCPP";
+string _panelid = "SolidModifyPanel";
+
+string _iconFolderBrowse = "Resources/Browse";
+
+//print to console
+bool _debug = true;
+
+string _image;
 
 bool checkReturn(Ptr<Base> returnObj)
 {
@@ -36,6 +48,29 @@ bool checkReturn(Ptr<Base> returnObj)
 		else
 			return false;
 }
+
+//print message
+void log(string message) {
+	if (_debug) {
+		_app->log(message);
+	}
+};
+
+// Command Created event handler.
+class GetContourFromImageCommandCreatedEventHandler : public adsk::core::CommandCreatedEventHandler
+{
+public:
+	void notify(const Ptr<CommandCreatedEventArgs>& eventArgs) override
+	{
+		Ptr<Command> cmd = eventArgs->command();
+		// Define the inputs.
+		Ptr<CommandInputs> inputs = cmd->commandInputs();
+
+		_image = inputs->addBoolValueInput("browseOutput", "Browse image for ", false, _iconFolderBrowse);
+		
+
+	}
+} _getcontourCmdCreated;
 
 extern "C" XI_EXPORT bool run(const char* context)
 {
@@ -55,13 +90,13 @@ extern "C" XI_EXPORT bool run(const char* context)
 	if (!_design)
 		return false;
 
-
+	
 	// Create a command definition and add a button to the CREATE panel.
-	Ptr<CommandDefinition> cmdDef = _ui->commandDefinitions()->addButtonDefinition("ResizerModifierCPPAddIn", "Resizer Modifier", "This modifier can be used to resize an object using dimensional values instead of scale factor.", "Resources/Resizer Modifier");
+	Ptr<CommandDefinition> cmdDef = _ui->commandDefinitions()->addButtonDefinition(_cmdid, "Get contours from image", "Get contours from image-des", "Resources/Get Contours");
 	if (!checkReturn(cmdDef))
 		return false;
 
-	Ptr<ToolbarPanel> createPanel = _ui->allToolbarPanels()->itemById("SolidModifyPanel");
+	Ptr<ToolbarPanel> createPanel = _ui->allToolbarPanels()->itemById(_panelid);
 	if (!checkReturn(createPanel))
 		return false;
 
@@ -71,7 +106,7 @@ extern "C" XI_EXPORT bool run(const char* context)
 
 	// Connect to the Command Created event.
 	Ptr<CommandCreatedEvent> commandCreatedEvent = cmdDef->commandCreated();
-	//commandCreatedEvent->add(&_resizerCmdCreated);
+	commandCreatedEvent->add(&_getcontourCmdCreated);
 
 	std::string strContext = context;
 	if (strContext.find("IsApplicationStartup", 0) != std::string::npos)
@@ -81,18 +116,25 @@ extern "C" XI_EXPORT bool run(const char* context)
 			_ui->messageBox("The \"Resizer Modifier\" command has been added\nto the MODIFY panel of the MODEL workspace.");
 		}
 	}
+
 	return true;
 }
 
 
 extern "C" XI_EXPORT bool stop(const char* context)
 {
-	if (_ui)
-	{
-		_ui->messageBox("Stop addin");
-		_ui = nullptr;
-	}
 
+	Ptr<ToolbarPanel> createPanel = _ui->allToolbarPanels()->itemById(_panelid);
+	if (!checkReturn(createPanel))
+		return false;
+
+	Ptr<CommandControl> resizerModifier = createPanel->controls()->itemById(_cmdid);
+	if (checkReturn(resizerModifier))
+		resizerModifier->deleteMe();
+
+	Ptr<CommandDefinition> cmdDef = _ui->commandDefinitions()->itemById(_cmdid);
+	if (checkReturn(cmdDef))
+		cmdDef->deleteMe();
 	return true;
 }
 
