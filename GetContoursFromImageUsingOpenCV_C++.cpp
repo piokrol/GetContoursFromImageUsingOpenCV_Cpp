@@ -3,12 +3,7 @@
 #include <Fusion/FusionAll.h>
 #include <CAM/CAMAll.h>
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <math.h>
 
 
 using namespace adsk::core;
@@ -17,10 +12,15 @@ using namespace adsk::cam;
 using namespace std;
 
 
+cv::Mat selectedImage;
+
+
+
 Ptr<Application> _app;
 Ptr<UserInterface> _ui;
 Ptr<Product> _product;
 Ptr<Design> _design;
+
 
 //TODO variable for description and name
 string _cmdid = "getContoursFromImageCPP";
@@ -32,6 +32,8 @@ string _iconFolderBrowse = "Resources/Browse";
 bool _debug = true;
 
 string _image;
+
+
 
 bool checkReturn(Ptr<Base> returnObj)
 {
@@ -56,6 +58,34 @@ void log(string message) {
 	}
 };
 
+void getImage() {
+   
+
+	
+	//cv::imread("_image", cv::IMREAD_COLOR);
+	//cv::Size imgSize = selectedImage.size();
+	//int width = imgSize.width;
+	//int height = imgSize.height;
+	//log(width);S
+};
+
+
+// Command InputChanged event handler.
+class GetContourFromImageChangedHandler : public adsk::core::InputChangedEventHandler
+{
+public:
+	void notify(const Ptr<InputChangedEventArgs>& eventArgs) override
+	{
+		Ptr<CommandInput> changedInput = eventArgs->input();
+
+
+		if (changedInput->id() == "browseOutput") {
+			log("input");
+		}
+	}
+}_getcontourInputChanged;
+
+
 // Command Created event handler.
 class GetContourFromImageCommandCreatedEventHandler : public adsk::core::CommandCreatedEventHandler
 {
@@ -68,7 +98,14 @@ public:
 
 		_image = inputs->addBoolValueInput("browseOutput", "Browse image for ", false, _iconFolderBrowse);
 		
-
+		// Connect to the command related events.
+		Ptr<InputChangedEvent> inputChangedEvent = cmd->inputChanged();
+		if (!inputChangedEvent)
+			return;
+		bool isOk = inputChangedEvent->add(&_getcontourInputChanged);
+		if (!isOk)
+			return;
+		
 	}
 } _getcontourCmdCreated;
 
